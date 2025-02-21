@@ -1,0 +1,2 @@
+coord,weather,base,main,visibility,wind,clouds,dt,sys,timezone,id,name,cod
+"{'lon': -16.3201, 'lat': 28.4853}","[{'id': 801, 'main': 'Clouds', 'description': 'few clouds', 'icon': '02d'}]",stations,"{'temp': 289.54, 'feels_like': 289.32, 'temp_min': 288.53, 'temp_max': 290.66, 'pressure': 1025, 'humidity': 80, 'sea_level': 1025, 'grnd_level': 999}",10000,"{'speed': 3.13, 'deg': 106, 'gust': 5.81}",{'all': 20},1740139964,"{'type': 2, 'id': 2017385, 'country': 'ES', 'sunrise': 1740123494, 'sunset': 1740164393}",0,2511401,San Cristóbal de La Laguna,200

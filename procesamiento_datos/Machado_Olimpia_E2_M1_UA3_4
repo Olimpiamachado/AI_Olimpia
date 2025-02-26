@@ -1,0 +1,773 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Ejercicio práctico: Limpieza y transformación de un dataset biosanitario\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Tema 3: Aplicación de aspectos avanzados de procesamiento de datos en Python"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "- Objetivo práctico: Aplicar técnicas de limpieza y preprocesamiento de datos para preparar un conjunto de datos para su análisis."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Descripción"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "- En este ejercicio, vais a trabajar con un conjunto de datos sintéticos\n",
+    "biosanitarios contenido en un único archivo CSV titulado\n",
+    "pacientes_sintetico.csv. Este dataset simula registros de pacientes con\n",
+    "columnas como edad, presión arterial, niveles de colesterol y frecuencia\n",
+    "cardíaca máxima. El archivo ha sido diseñado para incluir imperfecciones\n",
+    "comunes: valores nulos, duplicados y columnas numéricas que necesitan\n",
+    "normalización."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Vuestra tarea consiste en usar este archivo CSV y realizar las siguientes actividades utilizando Python y bibliotecas como pandas, numpy y sklearn:\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#Importamos las librerías necesarias\n",
+    "import numpy as np\n",
+    "import pandas as pd\n",
+    "import matplotlib.pyplot as plt\n",
+    "import seaborn as sns\n",
+    "from sklearn.preprocessing import StandardScaler, MinMaxScaler  # Para normalización de datos\n",
+    "from sklearn.impute import SimpleImputer  # Para manejar valores faltantes\n",
+    "from sklearn.preprocessing import LabelEncoder  # Para codificar variables categóricas\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {
+    "vscode": {
+     "languageId": "plaintext"
+    }
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "(5050, 5)\n"
+     ]
+    },
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>id_paciente</th>\n",
+       "      <th>edad</th>\n",
+       "      <th>presion_arterial</th>\n",
+       "      <th>colesterol</th>\n",
+       "      <th>frec_cardiaca_max</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>1</td>\n",
+       "      <td>56</td>\n",
+       "      <td>74.7</td>\n",
+       "      <td>245.5</td>\n",
+       "      <td>106</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>2</td>\n",
+       "      <td>69</td>\n",
+       "      <td>122.8</td>\n",
+       "      <td>216.0</td>\n",
+       "      <td>64</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>3</td>\n",
+       "      <td>46</td>\n",
+       "      <td>147.0</td>\n",
+       "      <td>212.4</td>\n",
+       "      <td>121</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>4</td>\n",
+       "      <td>32</td>\n",
+       "      <td>NaN</td>\n",
+       "      <td>154.9</td>\n",
+       "      <td>143</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>5</td>\n",
+       "      <td>60</td>\n",
+       "      <td>123.1</td>\n",
+       "      <td>153.7</td>\n",
+       "      <td>192</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "   id_paciente  edad  presion_arterial  colesterol  frec_cardiaca_max\n",
+       "0            1    56              74.7       245.5                106\n",
+       "1            2    69             122.8       216.0                 64\n",
+       "2            3    46             147.0       212.4                121\n",
+       "3            4    32               NaN       154.9                143\n",
+       "4            5    60             123.1       153.7                192"
+      ]
+     },
+     "execution_count": 2,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "#Cargamos el archivo csv\n",
+    "ruta = \"pacientes_sintetico.csv\"\n",
+    "data = pd.read_csv(ruta)\n",
+    "\n",
+    "print(data.shape)\n",
+    "#Mostramos las primeras filas del archivo:\n",
+    "data.head()\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "<class 'pandas.core.frame.DataFrame'>\n",
+      "RangeIndex: 5050 entries, 0 to 5049\n",
+      "Data columns (total 5 columns):\n",
+      " #   Column             Non-Null Count  Dtype  \n",
+      "---  ------             --------------  -----  \n",
+      " 0   id_paciente        5050 non-null   int64  \n",
+      " 1   edad               5050 non-null   int64  \n",
+      " 2   presion_arterial   4578 non-null   float64\n",
+      " 3   colesterol         4577 non-null   float64\n",
+      " 4   frec_cardiaca_max  5050 non-null   int64  \n",
+      "dtypes: float64(2), int64(3)\n",
+      "memory usage: 197.4 KB\n"
+     ]
+    },
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>id_paciente</th>\n",
+       "      <th>edad</th>\n",
+       "      <th>presion_arterial</th>\n",
+       "      <th>colesterol</th>\n",
+       "      <th>frec_cardiaca_max</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>count</th>\n",
+       "      <td>5050.000000</td>\n",
+       "      <td>5050.000000</td>\n",
+       "      <td>4578.000000</td>\n",
+       "      <td>4577.000000</td>\n",
+       "      <td>5050.000000</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>mean</th>\n",
+       "      <td>2502.759406</td>\n",
+       "      <td>48.739604</td>\n",
+       "      <td>119.533443</td>\n",
+       "      <td>199.524055</td>\n",
+       "      <td>129.802178</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>std</th>\n",
+       "      <td>1444.776986</td>\n",
+       "      <td>17.912767</td>\n",
+       "      <td>15.155113</td>\n",
+       "      <td>40.334454</td>\n",
+       "      <td>40.413782</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>min</th>\n",
+       "      <td>1.000000</td>\n",
+       "      <td>18.000000</td>\n",
+       "      <td>72.300000</td>\n",
+       "      <td>43.100000</td>\n",
+       "      <td>60.000000</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>25%</th>\n",
+       "      <td>1252.250000</td>\n",
+       "      <td>34.000000</td>\n",
+       "      <td>109.300000</td>\n",
+       "      <td>172.900000</td>\n",
+       "      <td>95.000000</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>50%</th>\n",
+       "      <td>2504.500000</td>\n",
+       "      <td>49.000000</td>\n",
+       "      <td>119.500000</td>\n",
+       "      <td>199.300000</td>\n",
+       "      <td>130.000000</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>75%</th>\n",
+       "      <td>3754.750000</td>\n",
+       "      <td>64.000000</td>\n",
+       "      <td>129.800000</td>\n",
+       "      <td>226.100000</td>\n",
+       "      <td>165.000000</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>max</th>\n",
+       "      <td>5000.000000</td>\n",
+       "      <td>79.000000</td>\n",
+       "      <td>178.900000</td>\n",
+       "      <td>335.100000</td>\n",
+       "      <td>199.000000</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "       id_paciente         edad  presion_arterial   colesterol  \\\n",
+       "count  5050.000000  5050.000000       4578.000000  4577.000000   \n",
+       "mean   2502.759406    48.739604        119.533443   199.524055   \n",
+       "std    1444.776986    17.912767         15.155113    40.334454   \n",
+       "min       1.000000    18.000000         72.300000    43.100000   \n",
+       "25%    1252.250000    34.000000        109.300000   172.900000   \n",
+       "50%    2504.500000    49.000000        119.500000   199.300000   \n",
+       "75%    3754.750000    64.000000        129.800000   226.100000   \n",
+       "max    5000.000000    79.000000        178.900000   335.100000   \n",
+       "\n",
+       "       frec_cardiaca_max  \n",
+       "count        5050.000000  \n",
+       "mean          129.802178  \n",
+       "std            40.413782  \n",
+       "min            60.000000  \n",
+       "25%            95.000000  \n",
+       "50%           130.000000  \n",
+       "75%           165.000000  \n",
+       "max           199.000000  "
+      ]
+     },
+     "execution_count": 3,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "#Información básica del archivo:\n",
+    "data.info()\n",
+    "data.describe()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "1. Imputar valores nulos:\n",
+    "Identificad las columnas con valores faltantes (por ejemplo,\n",
+    "\"colesterol\" o \"presión arterial\") y rellenadlos utilizando el promedio\n",
+    "(para datos continuos) o la mediana (para datos con distribuciones no\n",
+    "uniformes)."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "\n",
+      "Valores faltantes antes de la limpieza:\n",
+      "id_paciente            0\n",
+      "edad                   0\n",
+      "presion_arterial     472\n",
+      "colesterol           473\n",
+      "frec_cardiaca_max      0\n",
+      "dtype: int64\n",
+      "\n",
+      "=== Valores faltantes después de la limpieza: ===\n",
+      "id_paciente          0\n",
+      "edad                 0\n",
+      "presion_arterial     0\n",
+      "colesterol           0\n",
+      "frec_cardiaca_max    0\n",
+      "dtype: int64\n"
+     ]
+    }
+   ],
+   "source": [
+    "#Observamos si hay valores nulos\n",
+    "print(\"\\nValores faltantes antes de la limpieza:\")\n",
+    "print(data.isnull().sum())\n",
+    "#Las columnas con valores faltantes son: presion_arterial y colesterol\n",
+    "\n",
+    "\n",
+    "#Rellenamos usando el promedio\n",
+    "imputer = SimpleImputer(strategy = 'mean') #Sustituye los valores nulos por la mediana de todos los valores\n",
+    "#Lista de columnas numericas que se van a imputar\n",
+    "columnas_numericas = ['edad', 'presion_arterial', 'colesterol', 'frec_cardiaca_max']\n",
+    "# Aplicamos la imputación\n",
+    "data[columnas_numericas] = imputer.fit_transform(data[columnas_numericas])\n",
+    "\n",
+    "#### Otra forma: ###\n",
+    "#colesterol_mean = df['colesterol'].mean()\n",
+    "#df.fillna({'colesterol': colesterol_mean}, inplace = True)\n",
+    "\n",
+    "\n",
+    "#Imprimimos los valores faltantes\n",
+    "print(\"\\n=== Valores faltantes después de la limpieza: ===\")\n",
+    "print(data.isnull().sum())\n",
+    "\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "2. Eliminar duplicados:\n",
+    "Buscad y eliminad cualquier fila duplicada en el dataset para asegurar\n",
+    "que cada paciente esté representado una sola vez.\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "metadata": {
+    "vscode": {
+     "languageId": "plaintext"
+    }
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Numero de filas duplicadas:\n",
+      "50\n"
+     ]
+    },
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>id_paciente</th>\n",
+       "      <th>edad</th>\n",
+       "      <th>presion_arterial</th>\n",
+       "      <th>colesterol</th>\n",
+       "      <th>frec_cardiaca_max</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>1</td>\n",
+       "      <td>56.0</td>\n",
+       "      <td>74.700000</td>\n",
+       "      <td>245.5</td>\n",
+       "      <td>106.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>2</td>\n",
+       "      <td>69.0</td>\n",
+       "      <td>122.800000</td>\n",
+       "      <td>216.0</td>\n",
+       "      <td>64.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>3</td>\n",
+       "      <td>46.0</td>\n",
+       "      <td>147.000000</td>\n",
+       "      <td>212.4</td>\n",
+       "      <td>121.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>4</td>\n",
+       "      <td>32.0</td>\n",
+       "      <td>119.533443</td>\n",
+       "      <td>154.9</td>\n",
+       "      <td>143.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>5</td>\n",
+       "      <td>60.0</td>\n",
+       "      <td>123.100000</td>\n",
+       "      <td>153.7</td>\n",
+       "      <td>192.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>...</th>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4995</th>\n",
+       "      <td>4996</td>\n",
+       "      <td>42.0</td>\n",
+       "      <td>120.800000</td>\n",
+       "      <td>208.5</td>\n",
+       "      <td>108.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4996</th>\n",
+       "      <td>4997</td>\n",
+       "      <td>39.0</td>\n",
+       "      <td>150.700000</td>\n",
+       "      <td>176.1</td>\n",
+       "      <td>91.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4997</th>\n",
+       "      <td>4998</td>\n",
+       "      <td>48.0</td>\n",
+       "      <td>95.600000</td>\n",
+       "      <td>221.1</td>\n",
+       "      <td>74.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4998</th>\n",
+       "      <td>4999</td>\n",
+       "      <td>34.0</td>\n",
+       "      <td>111.600000</td>\n",
+       "      <td>221.9</td>\n",
+       "      <td>121.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4999</th>\n",
+       "      <td>5000</td>\n",
+       "      <td>72.0</td>\n",
+       "      <td>120.500000</td>\n",
+       "      <td>246.3</td>\n",
+       "      <td>137.0</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>5000 rows × 5 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "      id_paciente  edad  presion_arterial  colesterol  frec_cardiaca_max\n",
+       "0               1  56.0         74.700000       245.5              106.0\n",
+       "1               2  69.0        122.800000       216.0               64.0\n",
+       "2               3  46.0        147.000000       212.4              121.0\n",
+       "3               4  32.0        119.533443       154.9              143.0\n",
+       "4               5  60.0        123.100000       153.7              192.0\n",
+       "...           ...   ...               ...         ...                ...\n",
+       "4995         4996  42.0        120.800000       208.5              108.0\n",
+       "4996         4997  39.0        150.700000       176.1               91.0\n",
+       "4997         4998  48.0         95.600000       221.1               74.0\n",
+       "4998         4999  34.0        111.600000       221.9              121.0\n",
+       "4999         5000  72.0        120.500000       246.3              137.0\n",
+       "\n",
+       "[5000 rows x 5 columns]"
+      ]
+     },
+     "execution_count": 6,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "duplicados = data.duplicated().sum()\n",
+    "print('Numero de filas duplicadas:')\n",
+    "print(duplicados)\n",
+    "\n",
+    "data.drop_duplicates() #Esta función elimina todos los duplicados del dataset. \n",
+    "#Hemos eliminado 50 filas duplicadas"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "3. Normalizar una columna numérica:\n",
+    "Elegid una columna numérica del CSV (como \"edad\" o \"colesterol\") y\n",
+    "aplicad la técnica de min-max scaling para escalar sus valores al rango\n",
+    "[0, 1].\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "metadata": {
+    "vscode": {
+     "languageId": "plaintext"
+    }
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>id_paciente</th>\n",
+       "      <th>edad</th>\n",
+       "      <th>presion_arterial</th>\n",
+       "      <th>colesterol</th>\n",
+       "      <th>frec_cardiaca_max</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>1</td>\n",
+       "      <td>56.0</td>\n",
+       "      <td>74.700000</td>\n",
+       "      <td>0.693151</td>\n",
+       "      <td>106.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>2</td>\n",
+       "      <td>69.0</td>\n",
+       "      <td>122.800000</td>\n",
+       "      <td>0.592123</td>\n",
+       "      <td>64.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>3</td>\n",
+       "      <td>46.0</td>\n",
+       "      <td>147.000000</td>\n",
+       "      <td>0.579795</td>\n",
+       "      <td>121.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>4</td>\n",
+       "      <td>32.0</td>\n",
+       "      <td>119.533443</td>\n",
+       "      <td>0.382877</td>\n",
+       "      <td>143.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>5</td>\n",
+       "      <td>60.0</td>\n",
+       "      <td>123.100000</td>\n",
+       "      <td>0.378767</td>\n",
+       "      <td>192.0</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "   id_paciente  edad  presion_arterial  colesterol  frec_cardiaca_max\n",
+       "0            1  56.0         74.700000    0.693151              106.0\n",
+       "1            2  69.0        122.800000    0.592123               64.0\n",
+       "2            3  46.0        147.000000    0.579795              121.0\n",
+       "3            4  32.0        119.533443    0.382877              143.0\n",
+       "4            5  60.0        123.100000    0.378767              192.0"
+      ]
+     },
+     "execution_count": 7,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "# Normalización usando Min-Max Scaler para variables que deben estar entre 0 y 1\n",
+    "normalizer = MinMaxScaler()\n",
+    "colesterol = ['colesterol']\n",
+    "data[colesterol] = normalizer.fit_transform(data[colesterol])\n",
+    "data.head()\n",
+    "#Nos aparece la columna de colesterol con los valores normalizados para que estén entre 0 y 1"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Instrucciones"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "- Usad el archivo pacientes_sintetico.csv que se os proporcionará (o\n",
+    "generadlo con el código de ejemplo que se incluye más abajo).\n",
+    "- Cargad el archivo en Python, limpiadlo y transformadlo.\n",
+    "- Documentad vuestros pasos en el código con comentarios que expliquen qué\n",
+    "hacéis y por qué."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Entregable"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "- Un script de Python con el código completo que realice las tres tareas a\n",
+    "partir del archivo CSV.\n",
+    "- Un resumen breve (puede ser en comentarios en el código) donde\n",
+    "indiquéis:\n",
+    "    - Qué columnas tenían valores nulos y cómo las tratasteis.\n",
+    "    - Cuántos duplicados eliminasteis.\n",
+    "    - Qué significa un valor normalizado (por ejemplo, 0 o 1) en la columna que elegisteis.\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Contexto"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Imaginad que sois analistas de datos en un hospital preparando un archivo CSV\n",
+    "con información clínica simulada para un estudio piloto sobre factores de\n",
+    "riesgo cardiovascular. La calidad de los datos es clave para obtener\n",
+    "resultados fiables, ¡así que aseguraos de que el dataset esté bien limpio y\n",
+    "listo para el análisis!"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3 (ipykernel)",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.12.9"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 4
+}
